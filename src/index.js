@@ -22,6 +22,9 @@ var Emitter = require('wildemitter');
 module.exports = function(basepath){
 
 	function get_channel(st){
+		if(!st){
+			st = '*';
+		}
 		return (basepath ? basepath : '') + st;
 	}
 
@@ -42,13 +45,13 @@ module.exports = function(basepath){
 			fn = channel;
 			channel = '*';
 		}
-		channel = get_channel((channel===null || channel==='') ? '*' : channel);
-		channels.on(channel==='*' ? '_all' : channel, fn);
+		channel = get_channel(channel);
+		channels.on(channel, fn);
   	radio.emit('listen', channel);
   }
 
   radio.cancel = function(channel, fn){
-  	var emitterkey = get_channel(channel==='*' ? '_all': channel);
+  	var emitterkey = get_channel(channel);
 
 		if(fn){
 			channels.off(emitterkey, fn);
@@ -65,7 +68,6 @@ module.exports = function(basepath){
 
   radio.receive = function(channel, body){
 		channels.emit(channel, body, channel);
-		channels.emit('_all', body, channel);
   }
 
   return radio;
@@ -75,12 +77,16 @@ module.exports = function(basepath){
 module.exports.container_wrapper = function(radio, container){
 
 	function get_channel(channel){
+
+		if(!channel){
+			channel = '*';
+		}
 		var base = container.diggerwarehouse().replace(/^\//, '').replace(/\//g, '.') + '.' + (container.diggerpath() || []).join('.');
 
 		var st = base;
 
 		if(channel.match(/[\w\*]/)){
-			st = base + '.' + channel;
+			st = base + channel;
 		}
 
 		return st;
@@ -97,9 +103,6 @@ module.exports.container_wrapper = function(radio, container){
 			return radio.talk(channel, packet);
 		},
 		listen:function(channel, fn){
-			console.log('-------------------------------------------');
-			console.log('-------------------------------------------');
-			console.log('chan: ' + channel);
 			channel = get_channel(channel);
 			return radio.listen(channel, fn);
 		},
