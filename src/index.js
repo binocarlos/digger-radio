@@ -72,3 +72,38 @@ module.exports = function(basepath){
   return radio;
 
 }
+
+module.exports.container_wrapper = function(radio, container){
+
+	function get_channel(channel){
+		var base = container.diggerwarehouse().replace(/^\//, '').replace(/\//g, '.') + '.' + (container.diggerpath() || []).join('.');
+
+		var st = base;
+
+		if(channel.match(/\w/)){
+			st = base + '.' + channel;
+		}
+
+		return st;
+	}
+
+	return {
+		talk:function(channel, packet){
+			if(arguments.length<2){
+				packet = channel;
+				channel = '';
+			}
+			
+			channel = get_channel(channel);
+			return radio.talk(channel, packet);
+		},
+		listen:function(channel, fn){
+			channel = get_channel(channel);
+			return radio.listen(channel, fn);
+		},
+		cancel:function(channel, fn){
+			channel = get_channel(channel);
+			return radio.cancel(channel, fn);
+		}
+	}
+}
