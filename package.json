@@ -24,6 +24,6 @@
     "should": "~1.2.2"
   },
   "dependencies": {
-    "eventemitter2": "~0.4.13"
+    "wildemitter": "0.0.5"
   }
 }

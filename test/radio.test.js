@@ -36,13 +36,23 @@ describe('radio', function(){
     
     var radio = get_radio();
 
-    radio.listen('apples.*', function(){
+    radio.listen('apples*', function(){
       done();
     })
 
     radio.talk('apples.pears', 10);
   })
 
+  it('should support deep wildcards', function(done) {
+    
+    var radio = get_radio();
+
+    radio.listen('apples.*', function(){
+      done();
+    })
+
+    radio.talk('apples.pears.oranges.raspberries', 10);
+  })
 
   it('should read on a base path', function(done) {
     var radio = get_radio('apples.');

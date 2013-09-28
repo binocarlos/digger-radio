@@ -17,7 +17,7 @@
 	the channels we are listening to
 	
 */
-var EventEmitter2 = require('eventemitter2').EventEmitter2;
+var Emitter = require('wildemitter');
 
 module.exports = function(basepath){
 
@@ -26,17 +26,15 @@ module.exports = function(basepath){
 	}
 
 	// radio is the api
-	var radio = new EventEmitter2({
-    wildcard: true
+	var radio = new Emitter({
   })
 
 	// channels registers our functions
-  var channels = new EventEmitter2({
-    wildcard: true
+  var channels = new Emitter({
   })
 
   radio.talk = function(channel, body){
-  	radio.emit('talk', get_channel(channel), body);
+  	channels.emit(get_channel(channel), body);
   }
 
   radio.listen = function(channel, fn){
@@ -56,9 +54,10 @@ module.exports = function(basepath){
 			channels.off(emitterkey, fn);
 		}
 		else{
-			channels.removeAllListeners(emitterkey);	
+			channels.off(emitterkey);
 		}
-		var listeners = channels.listeners(emitterkey);
+
+		var listeners = channels.getWildcardCallbacks(emitterkey);
 		if(listeners.length<=0){
 			radio.emit('cancel', channel.replace(/\*$/, ''));
 		}
@@ -80,7 +79,7 @@ module.exports.container_wrapper = function(radio, container){
 
 		var st = base;
 
-		if(channel.match(/\w/)){
+		if(channel.match(/[\w\*]/)){
 			st = base + '.' + channel;
 		}
 
@@ -98,6 +97,9 @@ module.exports.container_wrapper = function(radio, container){
 			return radio.talk(channel, packet);
 		},
 		listen:function(channel, fn){
+			console.log('-------------------------------------------');
+			console.log('-------------------------------------------');
+			console.log('chan: ' + channel);
 			channel = get_channel(channel);
 			return radio.listen(channel, fn);
 		},
