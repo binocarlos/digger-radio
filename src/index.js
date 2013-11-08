@@ -102,11 +102,13 @@ module.exports.container_wrapper = function(radio, container){
 		}
 		
 		channel = get_channel(channel);
+    channel += '.' + packet.action;
 		return radio.talk(channel, packet);
 	}
 
 	wrapper.listen = function(channel, fn){
 		channel = get_channel(channel);
+    console.log('list: ' + channel);
 		return radio.listen(channel, fn);
 	}
 
