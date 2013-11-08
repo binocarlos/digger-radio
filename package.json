@@ -1,6 +1,6 @@
 {
   "name": "digger-radio",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Pub/Sub client for digger-client",
   "main": "src/index.js",
   "scripts": {
