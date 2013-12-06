@@ -1,6 +1,8 @@
 digger-radio
 ============
 
+![Build status](https://api.travis-ci.org/binocarlos/digger-radio.png)
+
 Pub/Sub client for digger-client
 
 ## installation
@@ -15,7 +17,7 @@ It 'subscribes' by sending the subscription key and registering a local function
 
 ```js
 var Radio = require('digger-radio');
-var radio = Radio();
+var radio = new Radio();
 
 radio.listen('apples', function(payload){
   // we heard 10!
@@ -29,7 +31,7 @@ radio.talk('apples', 10);
 Wildcards are supported:
 
 ```
-var radio = Radio();
+var radio = new Radio();
 
 radio.listen('apples.*', function(payload){
   // we heard 10!
@@ -42,7 +44,7 @@ radio.talk('apples.pears', 10);
 If you pass a base path to the constructor - it is transparently prepended to the subscription key.
 
 ```
-var radio = Radio('my.section.with.dots.');
+var radio = new Radio('my.section.with.dots.');
 
 radio.listen('apples.*', function(payload){
   // the actual path written:
@@ -57,7 +59,7 @@ radio.talk('apples.pears', 10);
 To cancel a listening function:
 
 ```js
-var radio = get_radio('apples.');
+var radio = new Radio('apples.');
 
 var count = 0;
 var handler = function(){
@@ -90,7 +92,7 @@ An example of the digger-sockets transport layer:
 
 ```js
 
-var radio = Radio();
+var radio = new Radio();
 
 radio.on('talk', function(channel, payload){
 	socket.send(JSON.stringify({

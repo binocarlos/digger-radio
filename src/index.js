@@ -17,187 +17,77 @@
 	the channels we are listening to
 	
 */
+var utils = require('digger-utils');
 var Emitter = require('wildemitter');
+var Injector = require('./injector');
 
-module.exports = function(basepath){
+module.exports = Radio;
 
-	function get_channel(st){
-		if(!st){
-			st = '*';
-		}
-		return (basepath ? basepath : '') + st;
-	}
-
-	// radio is the api
-	var radio = new Emitter({
-  })
-
-	// channels registers our functions
-  var channels = new Emitter({
-  })
-
-  radio.talk = function(channel, body){
-  	channels.emit(get_channel(channel), body);
-  }
-
-  radio.listen = function(channel, fn){
-  	if(!fn){
-			fn = channel;
-			channel = '*';
-		}
-		channel = get_channel(channel);
-		channels.on(channel, fn);
-  	radio.emit('listen', channel);
-  }
-
-  radio.cancel = function(channel, fn){
-  	var emitterkey = get_channel(channel);
-
-		if(fn){
-			channels.off(emitterkey, fn);
-		}
-		else{
-			channels.off(emitterkey);
-		}
-
-		var listeners = channels.getWildcardCallbacks(emitterkey);
-		if(listeners.length<=0){
-			radio.emit('cancel', channel.replace(/\*$/, ''));
-		}
-  }
-
-  radio.receive = function(channel, body){
-		channels.emit(channel, body, channel);
-  }
-
-  return radio;
-
+function Radio(basepath){
+  Emitter.call(this);
+  this.basepath = basepath;
+  this.channels = new Emitter();
 }
 
-module.exports.container_wrapper = function(radio, container){
+utils.inherits(Radio, Emitter);
 
-	function get_channel(channel){
+Radio.prototype.get_channel = function(st){
+  if(!st){
+    st = '*';
+  }
+  return (this.basepath ? this.basepath : '') + st;
+}
 
-		if(!channel){
-			channel = '*';
-		}
-		var base = container.diggerwarehouse().replace(/^\//, '').replace(/\//g, '.') + '.' + (container.diggerpath() || []).join('.');
+Radio.prototype.talk = function(channel, packet){
+  this.emit('talk', this.get_channel(channel), packet);
+  return this;
+}
 
-		var st = base;
+Radio.prototype.listen = function(channel, fn){
+  if(!fn){
+    fn = channel;
+    channel = '*';
+  }
+  channel = this.get_channel(channel);
+  this.channels.on(channel, fn);
+  this.emit('listen', channel);
+  return this;
+}
 
-		if(channel.match(/[\w\*]/)){
-			st = base + channel;
-		}
+Radio.prototype.cancel = function(channel, fn){
+  var emitterkey = this.get_channel(channel);
 
-		return st;
-	}
-
-	var wrapper = new Emitter({
-  })
-
-	wrapper.talk = function(channel, packet){
-		if(arguments.length<2){
-			packet = channel;
-			channel = '';
-		}
-		
-		channel = get_channel(channel);
-    channel += '.' + packet.action;
-		return radio.talk(channel, packet);
-	}
-
-	wrapper.listen = function(channel, fn){
-		channel = get_channel(channel);
-    
-		return radio.listen(channel, fn);
-	}
-
-  // return a radio listener that will inject the 
-  // data into the current container
-  wrapper.bind = function(){
-
-    wrapper.listen('*', function(channel, packet){
-      if(!packet.headers){
-        packet.headers = {};
-      }
-      var user = packet.headers['x-json-user'];
-
-      if(packet.action=='append'){
-
-        if(!packet.context){
-          return;
-        }
-
-        var target = packet.context ? container.find('=' + packet.context._digger.diggerid) : container;
-
-        if(target.isEmpty()){
-          return;
-        }
-
-        var to_append = $digger.create(packet.body);
-        var appended_count = 0;
-
-        to_append.each(function(append){
-          var check = target.find('=' + append.diggerid());
-          if(check.count()<=0){
-            target.append(append);
-            appended_count++;
-          }
-        })
-
-        if(appended_count>0){
-        	wrapper.emit('radio:event', {
-	          action:'append',
-	          user:user,
-	          target:target,
-	          data:to_append
-	        })	
-        }
-        
-      }
-      else if(packet.action=='save'){
-        var target_id = packet.body._digger.diggerid;
-        var target = container.find('=' + target_id);
-
-        if(target.isEmpty()){
-          return;
-        }
-
-        target.inject_data(packet.body);
-        wrapper.emit('radio:event', {
-          action:'save',
-          user:user,
-          target:target
-        })
-      }
-      else if(packet.action=='remove'){
-        var parent_id = packet.body._digger.diggerparentid;
-        var target_id = packet.body._digger.diggerid;
-
-        var parent = parent_id ? container.find('=' + parent_id) : container;
-        var target = container.find('=' + target_id);
-
-        if(parent.isEmpty() || target.isEmpty()){
-          return;
-        }
-
-        parent.get(0)._children = parent.get(0)._children.filter(function(model){
-          return model._digger.diggerid!=target.diggerid()
-        })
-
-        wrapper.emit('radio:event', {
-          action:'remove',
-          user:user,
-          target:target
-        })
-      }
-    })
+  if(fn){
+    this.channels.off(emitterkey, fn);
+  }
+  else{
+    this.channels.off(emitterkey);
   }
 
-	wrapper.cancel = function(channel, fn){
-		channel = get_channel(channel);
-		return radio.cancel(channel, fn);
-	}
+  var listeners = this.channels.getWildcardCallbacks(emitterkey);
+  if(listeners.length<=0){
+    this.emit('cancel', channel.replace(/\*$/, ''));
+  }
+  return this;
+}
 
-	return wrapper;
+Radio.prototype.receive = function(channel, packet){
+  this.channels.emit(channel, packet, channel);
+  return this;
+}
+
+Radio.prototype.container = function(container){
+  var self = this;
+  var base = container.diggerwarehouse().replace(/^\//, '').replace(/\//g, '.') + '.' + (container.diggerpath() || []).join('.');
+
+  var radio = new Radio(base);
+  radio.container = radio;
+  return radio;
+}
+
+Radio.prototype.bind = function(){
+  if(this.container){
+    this.listen('*', Injector(this.container));  
+  }
+  return this;
 }

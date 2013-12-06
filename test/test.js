@@ -1,4 +1,5 @@
 var Radio = require('../src');
+var Container = require('digger-container');
 
 describe('radio', function(){
 
@@ -9,7 +10,7 @@ describe('radio', function(){
   */
 
   function get_radio(base){
-    var radio = Radio(base);
+    var radio = new Radio(base);
 
     radio.on('talk', function(channel, body){
       radio.receive(channel, body);

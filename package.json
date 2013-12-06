@@ -20,10 +20,14 @@
     "url": "https://github.com/binocarlos/digger-radio/issues"
   },
   "devDependencies": {
-    "mocha": "~1.12.0",
-    "should": "~1.2.2"
+    "mocha": "~1.14.0",
+    "mocha-phantomjs": "~3.1.6",
+    "browserify": "*",
+    "should": "~2.1.0",
+    "digger-container":"*"
   },
   "dependencies": {
-    "wildemitter": "0.0.5"
+    "wildemitter": "0.0.5",
+    "digger-utils":"*"
   }
 }
