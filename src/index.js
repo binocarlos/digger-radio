@@ -25,6 +25,11 @@ module.exports = Radio;
 
 function Radio(basepath){
   Emitter.call(this);
+  // assume container radio
+  if(basepath && typeof(basepath)!=='string'){
+    var container = this.container = basepath;
+    basepath = (container.diggerwarehouse().replace(/^\//, '').replace(/\//g, '.') + '.' + (container.diggerpath() || []).join('.') + '.').replace(/\.+/g, '.');
+  }
   this.basepath = basepath;
   this.channels = new Emitter();
 }
@@ -76,18 +81,25 @@ Radio.prototype.receive = function(channel, packet){
   return this;
 }
 
-Radio.prototype.container = function(container){
-  var self = this;
-  var base = container.diggerwarehouse().replace(/^\//, '').replace(/\//g, '.') + '.' + (container.diggerpath() || []).join('.');
-
-  var radio = new Radio(base);
-  radio.container = radio;
-  return radio;
-}
-
 Radio.prototype.bind = function(){
   if(this.container){
-    this.listen('*', Injector(this.container));  
+    this.listen('*', Injector(this, this.container));  
   }
+  return this;
+}
+
+Radio.prototype.connect = function(supplychain){
+  if(!supplychain){
+    return this;
+  }
+  this.on('talk', function(channel, packet){
+    supplychain.emit('radio:talk', channel, packet);
+  })
+  this.on('listen', function(channel, fn){
+    supplychain.emit('radio:listen', channel, fn);
+  })
+  this.on('cancel', function(channel, fn){
+    supplychain.emit('radio:cancel', channel, fn);
+  })
   return this;
 }

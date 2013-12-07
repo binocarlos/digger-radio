@@ -24,10 +24,11 @@
     "mocha-phantomjs": "~3.1.6",
     "browserify": "*",
     "should": "~2.1.0",
-    "digger-container": "*"
+    "digger-bundle": "*"
   },
   "dependencies": {
     "wildemitter": "0.0.5",
-    "digger-utils": "*"
+    "digger-utils": "*",
+    "digger-find": "*"
   }
 }

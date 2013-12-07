@@ -17,7 +17,7 @@
 	the channels we are listening to
 	
 */
-module.exports = function(container){
+module.exports = function(radio, container){
   return function(channel, packet){
     if(!packet.headers){
       packet.headers = {};
@@ -36,7 +36,7 @@ module.exports = function(container){
         return;
       }
 
-      var to_append = $digger.create(packet.body);
+      var to_append = container.spawn(packet.body);
       var appended_count = 0;
 
       to_append.each(function(append){
@@ -48,7 +48,7 @@ module.exports = function(container){
       })
 
       if(appended_count>0){
-        wrapper.emit('radio:event', {
+        radio.emit('radio:event', {
           action:'append',
           user:user,
           target:target,
@@ -66,7 +66,7 @@ module.exports = function(container){
       }
 
       target.inject_data(packet.body);
-      wrapper.emit('radio:event', {
+      radio.emit('radio:event', {
         action:'save',
         user:user,
         target:target
@@ -77,6 +77,7 @@ module.exports = function(container){
       var target_id = packet.body._digger.diggerid;
 
       var parent = parent_id ? container.find('=' + parent_id) : container;
+
       var target = container.find('=' + target_id);
 
       if(parent.isEmpty() || target.isEmpty()){
@@ -87,7 +88,7 @@ module.exports = function(container){
         return model._digger.diggerid!=target.diggerid()
       })
 
-      wrapper.emit('radio:event', {
+      radio.emit('radio:event', {
         action:'remove',
         user:user,
         target:target
