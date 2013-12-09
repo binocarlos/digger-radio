@@ -55,7 +55,7 @@ Radio.prototype.listen = function(channel, fn){
   }
   channel = this.get_channel(channel);
   this.channels.on(channel, fn);
-  this.emit('listen', channel);
+  this.emit('listen', channel, fn);
   return this;
 }
 
@@ -71,7 +71,7 @@ Radio.prototype.cancel = function(channel, fn){
 
   var listeners = this.channels.getWildcardCallbacks(emitterkey);
   if(listeners.length<=0){
-    this.emit('cancel', channel.replace(/\*$/, ''));
+    this.emit('cancel', emitterkey.replace(/\*$/, ''), fn);
   }
   return this;
 }
@@ -92,14 +92,15 @@ Radio.prototype.connect = function(supplychain){
   if(!supplychain){
     return this;
   }
+
   this.on('talk', function(channel, packet){
-    supplychain.emit('radio:talk', channel, packet);
+    supplychain.emit('radio', 'talk', channel, packet);
   })
   this.on('listen', function(channel, fn){
-    supplychain.emit('radio:listen', channel, fn);
+    supplychain.emit('radio', 'listen', channel, fn);
   })
   this.on('cancel', function(channel, fn){
-    supplychain.emit('radio:cancel', channel, fn);
+    supplychain.emit('radio', 'cancel', channel, fn);
   })
   return this;
 }

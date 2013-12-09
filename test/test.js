@@ -1,5 +1,6 @@
 var Radio = require('../src');
 var Container = require('digger-bundle');
+var EventEmitter = require('events').EventEmitter;
 
 describe('radio', function(){
 
@@ -210,6 +211,64 @@ describe('radio', function(){
     container.find('*').count().should.equal(1);
     
     done();
-  })  
+  })
+
+  it('should emit supplychain events for container radio', function(done){
+
+    var supplychain = new EventEmitter();
+    
+    var container = Container([{
+      _digger:{
+        tag:'folder',
+        diggerwarehouse:'/apiv1',
+        diggerpath:[20,34],
+        diggerid:'45'
+      },
+      _children:[{
+        _digger:{
+          tag:'thing',
+          diggerparentid:'45',
+          diggerid:'67'
+        }
+      }]
+    }])
+
+    container.supplychain = supplychain;
+
+    var radio = container.radio();
+
+    supplychain.on('radio', function(action, channel, packet){
+      if(action=='talk'){
+        channel.should.equal('apiv1.20.34.hello');
+        packet.should.equal(10);
+        step2();  
+      }
+      else if(action=='listen'){
+        channel.should.equal('apiv1.20.34.hello');
+        packet.should.be.type('function');
+        step3(); 
+      }
+      else if(action=='cancel'){
+        channel.should.equal('apiv1.20.34.hello');        
+        packet.should.be.type('function');
+        done(); 
+      }
+      
+    })
+    
+    function step1(){
+      radio.talk('hello', 10);  
+    }
+
+    function step2(){
+      radio.listen('hello', function(){});
+    }
+
+    function step3(){
+      radio.cancel('hello', function(){});
+    }
+    
+    step1();
+  }) 
 
 })
