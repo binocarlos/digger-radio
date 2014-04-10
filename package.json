@@ -22,13 +22,13 @@
   "devDependencies": {
     "mocha": "~1.14.0",
     "mocha-phantomjs": "~3.1.6",
-    "browserify": "*",
+    "browserify": "~2.36.1",
     "should": "~2.1.0",
-    "digger-bundle": "*"
+    "digger-bundle": "~0.0.3"
   },
   "dependencies": {
     "wildemitter": "0.0.5",
-    "digger-utils": "*",
-    "digger-find": "*"
+    "digger-utils": "~1.2.3",
+    "digger-find": "~0.1.5"
   }
 }
